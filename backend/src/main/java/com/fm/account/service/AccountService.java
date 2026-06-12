@@ -3,7 +3,6 @@ package com.fm.account.service;
 import com.fm.account.controller.vo.AccountReqVO;
 import com.fm.account.controller.vo.AccountRespVO;
 import com.fm.account.controller.vo.AccountSaveVO;
-import com.fm.account.service.bo.AccountBO;
 
 import java.util.List;
 
@@ -21,4 +20,9 @@ public interface AccountService {
     void update(Long id, AccountSaveVO saveVO);
 
     void delete(Long id);
+
+    /**
+     * 批量删除账户（同一事务，级联软删除其下交易）
+     */
+    void batchDelete(List<Long> ids);
 }

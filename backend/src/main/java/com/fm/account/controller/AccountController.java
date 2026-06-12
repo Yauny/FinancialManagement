@@ -9,10 +9,13 @@ import com.fm.common.util.LogUtil;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 /**
  * 账户管理 REST 接口
@@ -44,7 +47,7 @@ public class AccountController {
     }
 
     @PostMapping("/get")
-    public ResponseEntity<ApiResponse<AccountRespVO>> getById(@RequestBody java.util.Map<String, Long> body) {
+    public ResponseEntity<ApiResponse<AccountRespVO>> getById(@RequestBody(required = false) Map<String, Long> body) {
         String traceId = LogUtil.generateTraceId();
         Long id = body == null ? null : body.get("id");
         LogUtil.logRequest(log, "getById", traceId, id);
@@ -103,7 +106,7 @@ public class AccountController {
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<ApiResponse<Void>> delete(@RequestBody java.util.Map<String, Long> body) {
+    public ResponseEntity<ApiResponse<Void>> delete(@RequestBody(required = false) Map<String, Long> body) {
         String traceId = LogUtil.generateTraceId();
         Long id = body == null ? null : body.get("id");
         LogUtil.logRequest(log, "delete", traceId, id);
@@ -114,10 +117,39 @@ public class AccountController {
             return ResponseEntity.ok(ApiResponse.fail(traceId, "id不能为空"));
         }
 
-        accountService.delete(id);
-        LogUtil.logComplete(log, "delete", traceId, 0, 1);
-        LogUtil.clear();
+        try {
+            accountService.delete(id);
+            LogUtil.logComplete(log, "delete", traceId, 0, 1);
+            LogUtil.clear();
+            return ResponseEntity.ok(ApiResponse.success(traceId));
+        } catch (IllegalArgumentException e) {
+            LogUtil.logFail(log, "delete", traceId, e.getMessage());
+            LogUtil.clear();
+            return ResponseEntity.ok(ApiResponse.fail(traceId, e.getMessage()));
+        }
+    }
 
-        return ResponseEntity.ok(ApiResponse.success(traceId));
+    @PostMapping("/batchDelete")
+    public ResponseEntity<ApiResponse<Integer>> batchDelete(@RequestBody(required = false) Map<String, List<Long>> body) {
+        String traceId = LogUtil.generateTraceId();
+        List<Long> ids = body == null ? null : body.get("ids");
+        LogUtil.logRequest(log, "batchDelete", traceId, ids);
+
+        if (ids == null || ids.isEmpty()) {
+            LogUtil.logFail(log, "batchDelete", traceId, "ids不能为空");
+            LogUtil.clear();
+            return ResponseEntity.ok(ApiResponse.fail(traceId, "ids不能为空"));
+        }
+
+        try {
+            accountService.batchDelete(ids);
+            LogUtil.logComplete(log, "batchDelete", traceId, 0, ids.size());
+            LogUtil.clear();
+            return ResponseEntity.ok(ApiResponse.success(traceId, ids.size()));
+        } catch (IllegalArgumentException e) {
+            LogUtil.logFail(log, "batchDelete", traceId, e.getMessage());
+            LogUtil.clear();
+            return ResponseEntity.ok(ApiResponse.fail(traceId, e.getMessage()));
+        }
     }
 }

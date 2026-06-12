@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:fm;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/init.sql
+      continue-on-error: true
+  h2:
+    console:
+      enabled: true
+  cache:
+    type: redis
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+logging:
+  level:
+    com.fm: info
+    org.springframework: warn
+    org.hibernate: warn
+
+# 定时任务 cron 覆盖（测试模式：每 10 秒触发一次，便于验证）
+task:
+  asset-snapshot-cron: "*/10 * * * * ?"
+  cache-warmup-cron: "*/20 * * * * ?"
